@@ -1,4 +1,4 @@
-This repository is a fork from [Seung lab watershed repository(https://github.com/seung-lab/watershed/tree/master/src-julia).
+This repository is a fork from [Seung lab watershed repository](https://github.com/seung-lab/watershed/tree/master/src-julia).
 
 Hierarchical watershed segmentation
 =======
