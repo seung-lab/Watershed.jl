@@ -21,7 +21,7 @@ the two clusters is between their elements `id1` and `id2`.
 
 The code should work for general graphs.  If edges of `rg` are
 presorted by ascending weight, the code will compute the *minimal*
-spanning tree rather than the maximal spanning tree.  
+spanning tree rather than the maximal spanning tree.
 """
 
 function mst(rg, max_segid)
@@ -34,7 +34,7 @@ function mst(rg, max_segid)
         (v1,v2) = e[2:3]
         s1 = find_root(sets,v1)
         s2 = find_root(sets,v2)
-        
+
         if s1 != s2
             push!(regiontree,e)
             union!(sets,s1, s2)
@@ -75,9 +75,8 @@ function mst(rg, max_segid)
     for i in 1:length(regiontree)
         e = regiontree[i]
         if order[e[3]] < order[e[2]]
-            regiontree[i] = (e[1], e[3], e[2])
+            regiontree[i] = (e[1], e[2], e[3])
         end
     end
-        
     return regiontree
 end
