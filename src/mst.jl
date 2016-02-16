@@ -74,8 +74,8 @@ function mst(rg, max_segid)
     # order all edges as (weight, parent, child)
     for i in 1:length(regiontree)
         e = regiontree[i]
-        if order[e[3]] < order[e[2]]
-            regiontree[i] = (e[1], e[2], e[3])
+        if order[e[3]] > order[e[2]]
+            regiontree[i] = (e[1], e[3], e[2])
         end
     end
     return regiontree
