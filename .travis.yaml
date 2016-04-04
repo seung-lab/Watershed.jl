@@ -13,6 +13,7 @@ before_install:
 
 install:
         - julia -e 'Pkg.add("DataStructures"); 
+        - julia -e 'Pkg.test("DataStructures")'
         - git clone https://github.com/seung-lab/Watershed.jl.git
         - mv Watershed.jl ~/.julia/v0.4/Watershed
 
