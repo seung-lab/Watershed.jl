@@ -7,9 +7,5 @@ julia:
 notifications:
         email: false
 
-before_install:
-        - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        - sudo apt-get -qq update
-
 script:
         - julia -e 'Pkg.init(); Pkg.clone(pwd()); using Watershed'
