@@ -1,4 +1,10 @@
-using Watershed
+# load dependencies
+include("steepestascent.jl")
+include("divideplateaus.jl")
+include("findbasins.jl")
+include("regiongraph.jl")
+include("mergeregions.jl")
+include("mst.jl")
 
 export wsseg, watershed, mergert!, mergert
 
