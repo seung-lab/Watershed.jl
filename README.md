@@ -24,6 +24,11 @@ In image processing, many watershed implementations identify the ridgelines that
 Julia translation of Zlateski's C++ code.
 
 ## Installation
-`Pkg.add("Watershed")`
+in Julia RSVP: 
+* update the metadata: `Pkg.update()`
+* add package: `Pkg.add("Watershed")`
+* update the code to latest `master` branch: `Pkg.checkout("Watershed")`
+
 ## Usage
+`using Watershed`
 See `watershed.jl` for example of how to use functions.
