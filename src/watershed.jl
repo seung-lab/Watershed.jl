@@ -6,7 +6,7 @@ include("regiongraph.jl")
 include("mergeregions.jl")
 include("mst.jl")
 
-export wsseg, watershed, mergert!, mergert
+export wsseg, watershed, mergert!, mergert, rt2dend
 
 function watershed(affs, low=0.3, high=0.8, thresholds=[(600,0.3)], dust_size=1000)
     println("watershed, low: $low, high: $high")
@@ -96,5 +96,21 @@ function wsseg(affs, dim = 3, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_si
         seg, rt = watershed(affs, low, high, thresholds, dust_size)
         seg = mergert(seg, rt, thd_rt)
         return seg
+    end
+end
+
+"""
+transform rt to dendrogram for omnification
+"""
+function rt2dend(rt)
+    N = length(rt)
+    dendValues = zeros(Float32, N)
+    dend = zeros(UInt32, N,2)
+
+    for i in 1:N
+        t = rt[i]
+        dendValues[i] = t[1]
+        dend[i,1] = t[2]
+        dend[i,2] = t[3]
     end
 end
