@@ -1,4 +1,5 @@
 # load dependencies
+include("types.jl")
 include("steepestascent.jl")
 include("divideplateaus.jl")
 include("findbasins.jl")
@@ -6,7 +7,7 @@ include("regiongraph.jl")
 include("mergeregions.jl")
 include("mst.jl")
 
-export wsseg, watershed, mergert!, mergert, rt2dend
+export wsseg, watershed, mergerg!, mergerg, rg2dend
 
 function watershed(affs, low=0.3, high=0.8, thresholds=[(600,0.3)], dust_size=1000)
     println("watershed, low: $low, high: $high")
@@ -15,23 +16,23 @@ function watershed(affs, low=0.3, high=0.8, thresholds=[(600,0.3)], dust_size=10
     (seg, counts, counts0) = findbasins(sag)
     rg = regiongraph(affs, seg, length(counts))
     new_rg = mergeregions(seg, rg, counts, thresholds, dust_size)
-    rt = mst(new_rg, length(counts))
-    return (seg, rt)
+    rg = mst(new_rg, length(counts))
+    return (seg, rg)
 end
 
-function mergert(seg, rt, thd=0.5)
+function mergerg(seg::Tseg, rg::Trg, thd=0.5)
     # the returned segmentation
     ret = deepcopy(seg)
-    mergert!(ret, rt, thd)
+    mergerg!(ret, rg, thd)
     return ret
 end
 
-function mergert!(seg, rt, thd=0.5)
+function mergerg!(seg::Tseg, rg::Trg, thd=0.5)
     # get the ralative parent dict
     pd = Dict()
     # initialized as children and parents
     num = 0
-    for t in rt
+    for t in rg
         a, c, p = t
         @assert p>0 && c>0
         if a >= thd
@@ -40,14 +41,14 @@ function mergert!(seg, rt, thd=0.5)
         pd[c] = (p, a)
     end
     println("number of merging edges: $num")
-    println("total number: $(length(rt))")
+    println("total number: $(length(rg))")
 
     # get the relative root id
     # root dict
     rd = Dict()
     # root set
     rset = IntSet()
-    for t in rt
+    for t in rg
         # get affinity and segment IDs of parent and child
         a, c0, p0 = t
         c = c0
@@ -82,8 +83,8 @@ end
 function wsseg2d(affs, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_size=100, thd_rt=0.5)
     seg = zeros(UInt32, size(affs)[1:3] )
     for z in 1:size(affs,3)
-        seg[:,:,z], rt = watershed(affs[:,:,z,:], low, high, thresholds, dust_size)
-        seg[:,:,z] = mergert(seg[:,:,z], rt, thd_rt)
+        seg[:,:,z], rg = watershed(affs[:,:,z,:], low, high, thresholds, dust_size)
+        seg[:,:,z] = mergerg(seg[:,:,z], rg, thd_rg)
     end
     return seg
 end
@@ -91,26 +92,27 @@ end
 function wsseg(affs, dim = 3, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_size=100, thd_rt=0.5)
     @assert dim==2 || dim==3
     if dim==2
-        return wsseg2d(affs, low, high, thresholds, dust_size, thd_rt)
+        return wsseg2d(affs, low, high, thresholds, dust_size, thd_rg)
     else
-        seg, rt = watershed(affs, low, high, thresholds, dust_size)
-        seg = mergert(seg, rt, thd_rt)
+        seg, rg = watershed(affs, low, high, thresholds, dust_size)
+        seg = mergerg(seg, rg, thd_rg)
         return seg
     end
 end
 
 """
-transform rt to dendrogram for omnification
+transform rg to dendrogram for omnification
 """
-function rt2dend(rt)
-    N = length(rt)
+function rg2dend(rg::Trg)
+    N = length(rg)
     dendValues = zeros(Float32, N)
     dend = zeros(UInt32, N,2)
 
     for i in 1:N
-        t = rt[i]
+        t = rg[i]
         dendValues[i] = t[1]
         dend[i,1] = t[2]
         dend[i,2] = t[3]
     end
+    return dend, dendValues
 end
