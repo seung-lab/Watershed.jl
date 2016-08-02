@@ -9,25 +9,26 @@ include("mst.jl")
 
 export wsseg, watershed, mergerg!, mergerg, rg2dend
 
-function watershed(affs, low=0.3, high=0.8, thresholds=[(600,0.3)], dust_size=1000)
+function watershed(affs::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
+                    thresholds::Vector=[(800,0.3)], dust_size::Int=600)
     println("watershed, low: $low, high: $high")
     sag = steepestascent(affs, low, high)
     divideplateaus!(sag)
-    (seg, counts, counts0) = findbasins(sag)
+    (seg, counts, counts0) = findbasins!(sag)
     rg = regiongraph(affs, seg, length(counts))
     new_rg = mergeregions(seg, rg, counts, thresholds, dust_size)
     rg = mst(new_rg, length(counts))
     return (seg, rg)
 end
 
-function mergerg(seg::Tseg, rg::Trg, thd=0.5)
+function mergerg(seg::Tseg, rg::Trg, thd::AbstractFloat=0.5)
     # the returned segmentation
     ret = deepcopy(seg)
     mergerg!(ret, rg, thd)
     return ret
 end
 
-function mergerg!(seg::Tseg, rg::Trg, thd=0.5)
+function mergerg!(seg::Tseg, rg::Trg, thd::AbstractFloat=0.5)
     # get the ralative parent dict
     pd = Dict()
     # initialized as children and parents
