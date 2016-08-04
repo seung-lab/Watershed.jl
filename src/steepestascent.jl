@@ -1,8 +1,11 @@
-doc"""
+
+export steepestascent
+
+"""
 `STEEPESTASCENT` - Construct steepest ascent graph from affinity graph
 
      sag = steepestascent(aff, low, high)
-  
+
 * `sag`: steepest ascent graph (directed and unweighted). `sag[x,y,z]` contains 6-bit number encoding edges outgoing from (x,y,z)
 * `aff`: affinity graph (undirected and weighted). 4D array of affinities, where last dimension is of size 3
 * `low`: edges with affinity <= `low` are removed
@@ -16,16 +19,16 @@ if steepest ascent paths are nonunique.
 
 We follow the convention that:
 
-* `aff[x,y,z,1]` is affinity of voxels at [x-1,y,z] and [x,y,z]  
-* `aff[x,y,z,2]` is affinity of voxels at [x,y-1,z] and [x,y,z]  
-* `aff[x,y,z,3]` is affinity of voxels at [x,y,z-1] and [x,y,z]  
+* `aff[x,y,z,1]` is affinity of voxels at [x-1,y,z] and [x,y,z]
+* `aff[x,y,z,2]` is affinity of voxels at [x,y-1,z] and [x,y,z]
+* `aff[x,y,z,3]` is affinity of voxels at [x,y,z-1] and [x,y,z]
 """
 
-function steepestascent{T}(aff::Array{T},low,high)
+function steepestascent{T}(aff::Array{T, 4},low,high)
     steepestascent(aff,convert(T,low),convert(T,high))
 end
 
-function steepestascent{T}(aff::Array{T},low::T,high::T)
+function steepestascent{T}(aff::Array{T, 4},low::T,high::T)
     @assert size(aff,4)==3
     (xdim,ydim,zdim) = size(aff)     # extract image size
     sag=zeros(UInt32,xdim,ydim,zdim)  # initialize steepest ascent graph
@@ -40,7 +43,7 @@ function steepestascent{T}(aff::Array{T},low::T,high::T)
                 posx = (x<xdim) ? aff[x+1,y,z,1] : low
                 posy = (y<ydim) ? aff[x,y+1,z,2] : low
                 posz = (z<zdim) ? aff[x,y,z+1,3] : low
-                # aff=low for edges directed outside boundaries of image 
+                # aff=low for edges directed outside boundaries of image
 
                 m=max(negx,negy)
 		m=max(m,negz)

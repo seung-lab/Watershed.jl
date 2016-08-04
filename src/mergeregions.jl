@@ -1,13 +1,15 @@
 using DataStructures
 
-doc"""
+export mergeregions!
+
+"""
 `MERGEREGIONS` - merge small regions by agglomerative clustering
 
     new_rg = mergeregions(seg, rg, counts, thresholds, dust_size = 0)
 
 * `seg` - segmentation.  IDs of foreground regions are 1:length(counts).  ID=0 for background.  This is modified in place by the clustering.
 * `rg`: region graph as list of edges, array of (weight,id1,id2) tuples. The edges should be presorted so that weights are in descending order. Region IDs should be consistent with those in `seg`, except no zeros.
-* `new_rg`: new region graph after clustering, same format as `rg`.  
+* `new_rg`: new region graph after clustering, same format as `rg`.
 * `counts`: sizes of regions in `seg` (modified in place)
 * `thresholds`: sequence of (size_th,weight_th) pairs to be used for merging
 * `dust_size`: after merging, tiny regions less than dust_size to be eliminated by changing them to background voxels
@@ -16,8 +18,7 @@ Agglomerative clustering proceeds by considering the edges of the region graph i
 """
 
 # to-do: update code to include self-edges in `new_rg`
-
-function mergeregions(seg, rg, counts, thresholds, dust_size = 0)
+function mergeregions!(seg, rg, counts, thresholds, dust_size = 0)
     sets = IntDisjointSets(length(counts))
     for (size_th,weight_th) in thresholds
         for (weight,id1,id2) in rg
@@ -77,4 +78,3 @@ function mergeregions(seg, rg, counts, thresholds, dust_size = 0)
     println("Done with updating the region graph, size: ", length(new_rg))
     return new_rg
 end
-

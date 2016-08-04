@@ -1,4 +1,6 @@
-doc"""
+export findbasins, findbasins!
+
+"""
 `FINDBASINS` - find basins of attraction
 
      seg, counts, counts0 = findbasins(sag)
@@ -26,7 +28,7 @@ The algorithm ends when all voxels are assigned.
 The 7th bit (0x40) is used to indicate whether a voxel has been
 visited during BFS.
 
-The MSB indicates whether a voxel has been assigned a basin ID.  The MSB definition is given in the functions at the end of the file for UInt32 and UInt64 cases. 
+The MSB indicates whether a voxel has been assigned a basin ID.  The MSB definition is given in the functions at the end of the file for UInt32 and UInt64 cases.
 
 `findbasins` is applied to the steepest ascent graph after modification by `divideplateaus!`  By this point all paths are unique, except in maximal plateaus.
 """
@@ -43,7 +45,7 @@ end
 function findbasins!{T}(seg::Array{T,3})
     # seg initially contains the steepest ascent graph
     # and is transformed in-place to yield the segmentation into basins
-    (xdim,ydim,zdim) = size(seg) 
+    (xdim,ydim,zdim) = size(seg)
     const dir = [-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim]
     const dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
 
@@ -59,7 +61,7 @@ function findbasins!{T}(seg::Array{T,3})
         elseif (seg[idx] & high_bit(T))==0  # not yet assigned
             push!(bfs,idx)     # enqueue
             seg[idx] |= 0x40    # mark as visited
-            
+
             bfs_index = 1  # follow trajectory starting from idx
             while ( bfs_index <= length(bfs) )
                 me = bfs[bfs_index]
@@ -77,7 +79,7 @@ function findbasins!{T}(seg::Array{T,3})
                             seg[him] |= 0x40;    # mark as visited
                             push!(bfs,him)    # enqueue
                         # else ignore since visited (try next direction)
-                        end 
+                        end
                     end
                 end
                 bfs_index += 1      # go to next vertex in queue
@@ -114,7 +116,7 @@ end
 function high_bit(x::Type{UInt64})
     return 0x8000000000000000LL::UInt64
 end
-    
+
 function low_bits(x::Type{UInt32})
     return 0x7FFFFFFF::UInt32
 end
@@ -122,4 +124,3 @@ end
 function low_bits(x::Type{UInt64})
     return 0x7FFFFFFFFFFFFFFFLL::UInt64
 end
-

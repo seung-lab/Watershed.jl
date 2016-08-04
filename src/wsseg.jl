@@ -1,25 +1,21 @@
 # load dependencies
-include("types.jl")
-include("steepestascent.jl")
-include("divideplateaus.jl")
-include("findbasins.jl")
-include("regiongraph.jl")
-include("mergeregions.jl")
-include("mst.jl")
 
 export wsseg, watershed, mergerg!, mergerg, rg2dend
 
-function watershed(affs::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
-                    thresholds::Vector=[(800,0.3)], dust_size::Int=600)
+function watershed(aff::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
+                    thresholds::Vector=[(800,0.2)], dust_size::Int=600)
     println("watershed, low: $low, high: $high")
-    sag = steepestascent(affs, low, high)
-    divideplateaus!(sag)
-    (seg, counts, counts0) = findbasins!(sag)
-    rg = regiongraph(affs, seg, length(counts))
-    new_rg = mergeregions(seg, rg, counts, thresholds, dust_size)
+    # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
+    seg = steepestascent(aff, low, high)
+    divideplateaus!(seg)
+    (seg, counts, counts0) = findbasins!(seg)
+    rg = regiongraph(aff, seg, length(counts))
+    new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
     rg = mst(new_rg, length(counts))
     return (seg, rg)
 end
+
+
 
 function mergerg(seg::Tseg, rg::Trg, thd::AbstractFloat=0.5)
     # the returned segmentation
@@ -90,7 +86,7 @@ function wsseg2d(affs, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_size=100,
     return seg
 end
 
-function wsseg(affs, dim = 3, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_size=100, thd_rt=0.5)
+function wsseg(affs, dim = 3, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_size=100, thd_rg=0.5)
     @assert dim==2 || dim==3
     if dim==2
         return wsseg2d(affs, low, high, thresholds, dust_size, thd_rg)

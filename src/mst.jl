@@ -1,6 +1,7 @@
 using DataStructures
 
-doc"""
+export mst
+"""
 `MST` - compute maximal spanning tree from weighted graph
 
      regiontree = mst(rg,max_segid)
@@ -24,8 +25,8 @@ presorted by ascending weight, the code will compute the *minimal*
 spanning tree rather than the maximal spanning tree.
 """
 
-function mst(rg, max_segid)
-    regiontree = []
+function mst{Ta,Ts}(rg::Vector{Tuple{Ta,Ts,Ts}}, max_segid)
+    regiontree = Vector{Tuple{Ta,Ts,Ts}}([])
     adjacency=[Set{UInt32}() for i=1:max_segid]    # adjacency list
 
     # Kruskal's algorithm

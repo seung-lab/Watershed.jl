@@ -1,0 +1,38 @@
+using Watershed
+
+aff = rand(Float32, 256,256,16,3);
+
+watershed(aff)
+
+println("watershed ...")
+@time watershed(aff)
+
+# @profile watershed(aff)
+# Profile.print()
+low = 0.1
+high = 0.8
+thresholds = []
+dust_size = 1
+
+# first time run
+println("first time run...\n")
+seg = steepestascent(aff, low, high)
+divideplateaus!(seg)
+(seg, counts, counts0) = findbasins!(seg)
+rg = regiongraph(aff, seg, length(counts))
+new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
+rg = mst(new_rg, length(counts))
+
+
+println("steepestascent...\n\n")
+@time seg = steepestascent(aff, low, high)
+println("divideplateaus...")
+@time divideplateaus!(seg)
+println("findbasins...")
+@time (seg, counts, counts0) = findbasins!(seg)
+println("regiongraph...")
+@time rg = regiongraph(aff, seg, length(counts))
+println("mergeregions...")
+@time new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
+println("mst...")
+@time rg = mst(new_rg, length(counts))
