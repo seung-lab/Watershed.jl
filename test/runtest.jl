@@ -1,11 +1,11 @@
 using Watershed
 
-aff = rand(Float32, 256,256,16,3);
+aff = rand(Float32, 1024,1024,128,3);
 
-watershed(aff)
+# watershed(aff)
 
-println("watershed ...")
-@time watershed(aff)
+#println("watershed ...")
+#@time watershed(aff)
 
 # @profile watershed(aff)
 # Profile.print()
@@ -16,12 +16,18 @@ dust_size = 1
 
 # first time run
 println("first time run...\n")
-seg = steepestascent(aff, low, high)
-divideplateaus!(seg)
-(seg, counts, counts0) = findbasins!(seg)
-rg = regiongraph(aff, seg, length(counts))
-new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
-rg = mst(new_rg, length(counts))
+println("steepestascent...")
+@time seg = steepestascent(aff, low, high)
+println("divideplateaus...")
+@time divideplateaus!(seg)
+println("findbasins...")
+@time (seg, counts, counts0) = findbasins!(seg)
+println("regiongraph...")
+@time rg = regiongraph(aff, seg, length(counts))
+println("mergeregions...")
+@time new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
+println("mst...")
+@time rg = mst(new_rg, length(counts))
 
 
 println("steepestascent...\n\n")

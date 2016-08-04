@@ -1,4 +1,7 @@
 export regiongraph
+
+using DataStructures
+
 """
 `REGIONGRAPH` - create region graph by finding maximum affinity between each pair of regions in segmentation
 
@@ -25,13 +28,14 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
     (xdim,ydim,zdim)=size(seg)
     @assert size(aff) == (xdim,ydim,zdim,3)
 
+    low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
+
     # edge list representation
-    edges=Dict{Tuple{Ts,Ts},Ta}()
+    edges=DefaultDict(Tuple{Ts,Ts},Ta,low)
     # keys are vertex pairs (i,j) where i \leq j
     # values are edge weights
     # efficiency is competitive with Array of Dicts and code is simpler
 
-    low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
 
     for z=1:zdim
         for y=1:ydim
@@ -39,15 +43,15 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
                 if seg[x,y,z]!=0   # ignore background voxels
                     if ( (x > 1) && seg[x-1,y,z]!=0 && seg[x,y,z]!=seg[x-1,y,z])
                         p = minmax(seg[x,y,z], seg[x-1,y,z])
-                        edges[p] = max(get(edges,p,low), aff[x,y,z,1])
+                        edges[p] = max(edges[p], aff[x,y,z,1])
                     end
                     if ( (y > 1) && seg[x,y-1,z]!=0 && seg[x,y,z]!=seg[x,y-1,z])
                         p = minmax(seg[x,y,z], seg[x,y-1,z])
-                        edges[p] = max(get(edges,p,low), aff[x,y,z,2])
+                        edges[p] = max(edges[p], aff[x,y,z,2])
                     end
                     if ( (z > 1) && seg[x,y,z-1]!=0 && seg[x,y,z]!=seg[x,y,z-1])
                         p = minmax(seg[x,y,z], seg[x,y,z-1])
-                        edges[p] = max(get(edges,p,low), aff[x,y,z,3])
+                        edges[p] = max(edges[p], aff[x,y,z,3])
                     end
                 end
             end
