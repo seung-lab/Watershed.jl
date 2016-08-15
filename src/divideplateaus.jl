@@ -1,5 +1,7 @@
 export divideplateaus!
 
+# using DataStructures
+
 """
 `DIVIDEPLATEAUS!` - Divide plateaus in steepest ascent graph
 
@@ -22,19 +24,21 @@ function divideplateaus!(sag)
     const idirmask = [0x08, 0x10, 0x20, 0x01, 0x02, 0x04]
 
     # queue all vertices for which a purely outgoing edge exists
+    #bfs = Stack(UInt32)
     bfs = UInt32[]
+    sizehint!(bfs, length(sag))
     for idx in eachindex(sag)
         for d=1:6
             if (sag[idx] & dirmask[d]) != 0   # outgoing edge exists
                 if (sag[idx+dir[d]] & idirmask[d]) == 0  # no incoming edge
                     sag[idx] |= 0x40
-                    push!(bfs,idx)
+                    append!(bfs,[idx])
                     break
                 end
             end
         end
     end
-
+    gc()
     # divide plateaus
     bfs_index = 1;
     while bfs_index <= length(bfs)
@@ -55,5 +59,8 @@ function divideplateaus!(sag)
         sag[idx] = to_set    # picks unique outgoing edge, unsets 0x40 bit
         bfs_index += 1
     end
+    # manually release the memory of bfs
+    bfs = nothing
+    gc()
     return sag
 end
