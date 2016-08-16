@@ -19,15 +19,15 @@ Note this is an in-place modification of `sag`
 
 function divideplateaus!(sag)
     (xdim,ydim,zdim) = size(sag)
-    const dir = [-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim]
+    const dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
     const dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
     const idirmask = [0x08, 0x10, 0x20, 0x01, 0x02, 0x04]
 
     # queue all vertices for which a purely outgoing edge exists
     #bfs = Stack(UInt32)
-    bfs = UInt32[]
+    bfs = Int64[]
     sizehint!(bfs, length(sag))
-    for idx in eachindex(sag)
+    for idx in 1:Int64(length(sag))
         for d=1:6
             if (sag[idx] & dirmask[d]) != 0   # outgoing edge exists
                 if (sag[idx+dir[d]] & idirmask[d]) == 0  # no incoming edge
@@ -40,14 +40,14 @@ function divideplateaus!(sag)
     end
     gc()
     # divide plateaus
-    bfs_index = 1;
+    bfs_index = Int64(1);
     while bfs_index <= length(bfs)
         idx = bfs[bfs_index]
         to_set = 0
         for d=1:6
-            if (sag[idx] & dirmask[d]) !=0    # outgoing edge exists
-                if (sag[idx+dir[d]] & idirmask[d]) !=0  # incoming edge
-                    if ( sag[idx+dir[d]] & 0x40 ) == 0
+            if (sag[idx] & dirmask[d]) != UInt32(0)    # outgoing edge exists
+                if (sag[idx+dir[d]] & idirmask[d]) != UInt32(0)  # incoming edge
+                    if ( sag[idx+dir[d]] & 0x40 ) == UInt32(0)
                         push!(bfs,idx+dir[d])
                         sag[idx+dir[d]] |= 0x40
                     end

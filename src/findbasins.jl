@@ -46,12 +46,12 @@ function findbasins!{T}(seg::Array{T,3})
     # seg initially contains the steepest ascent graph
     # and is transformed in-place to yield the segmentation into basins
     (xdim,ydim,zdim) = size(seg)
-    const dir = [-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim]
+    const dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
     const dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
 
     counts0 = 0  # number of background voxels
-    counts = T[]  # voxel counts for each basin
-    bfs = T[]
+    counts = Int64[]  # voxel counts for each basin
+    bfs = Int64[]
 
     next_id = 1   # initialize basin ID
     for idx in eachindex(seg)
@@ -73,7 +73,7 @@ function findbasins!{T}(seg::Array{T,3})
                                 seg[it] = seg[him]  # including high bit
                             end
                             counts[ seg[him] & low_bits(T) ] += length(bfs);
-                            bfs = T[]  # empty queue
+                            bfs = Int64[]  # empty queue
                             break
                         elseif ( ( seg[him] & 0x40 ) == 0 )  # not visited
                             seg[him] |= 0x40;    # mark as visited
@@ -91,7 +91,7 @@ function findbasins!{T}(seg::Array{T,3})
                     seg[it] = high_bit(T) | next_id    # assign a basin ID
                 end
                 next_id += 1
-                bfs = T[]
+                bfs = Int64[]
             end
         end
     end
