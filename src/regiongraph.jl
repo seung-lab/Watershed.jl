@@ -35,7 +35,7 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
     # keys are vertex pairs (i,j) where i \leq j
     # values are edge weights
     # efficiency is competitive with Array of Dicts and code is simpler
-
+    #sizehint!(edges, length(aff)/3)
 
     for z=1:zdim
         for y=1:ydim
