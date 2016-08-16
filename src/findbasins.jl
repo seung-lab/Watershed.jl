@@ -102,6 +102,9 @@ function findbasins!{T}(seg::Array{T,3})
         seg[idx] &= low_bits(T)     # clear MSB
     end
 
+    # manually release the memory of bfs
+    bfs = []
+    gc()
     (seg, counts, counts0)
 end
 

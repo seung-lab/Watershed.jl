@@ -1,6 +1,6 @@
 # load dependencies
 
-export wsseg, watershed, mergerg!, mergerg, rg2dend
+export wsseg, watershed, atomicseg, mergerg!, mergerg, rg2dend
 
 function watershed(aff::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
                     thresholds::Vector=[(800,0.2)], dust_size::Int=600)
@@ -15,7 +15,25 @@ function watershed(aff::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
     return (seg, rg)
 end
 
-
+function atomicseg(aff::Taff,
+            low::AbstractFloat=0.1,
+            high::AbstractFloat=0.8,
+            thresholds::Vector=[(800,0.2)],
+            dust_size::Int=600)
+    println("watershed, low: $low, high: $high")
+    # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
+    println("steepestascent...")
+    seg = steepestascent(aff, low, high)
+    println("divideplateaus...")
+    divideplateaus!(seg)
+    println("findbasins!")
+    (seg, counts, counts0) = findbasins!(seg)
+    println("regiongraph...")
+    rg = regiongraph(aff, seg, length(counts))
+    println("mergeregions...")
+    new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
+    return seg
+end
 
 function mergerg(seg::Tseg, rg::Trg, thd::AbstractFloat=0.5)
     # the returned segmentation

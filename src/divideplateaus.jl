@@ -23,6 +23,7 @@ function divideplateaus!(sag)
 
     # queue all vertices for which a purely outgoing edge exists
     bfs = UInt32[]
+    sizehint!(bfs, length(sag))
     for idx in eachindex(sag)
         for d=1:6
             if (sag[idx] & dirmask[d]) != 0   # outgoing edge exists
