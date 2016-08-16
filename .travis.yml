@@ -8,4 +8,6 @@ notifications:
         email: false
 
 script:
-        - julia -e 'Pkg.init(); Pkg.clone(pwd()); using Watershed'
+        - julia -e `Pkg.init(); Pkg.clone(pwd())`
+        - julia -e `Pkg.add("DataStructures")`
+        - julia -e `Pkg.test("Watershed")`
