@@ -16,19 +16,7 @@ dust_size = 1
 
 # first time run
 println("first time run...\n")
-println("steepestascent...")
-@time seg = steepestascent(aff, low, high)
-println("divideplateaus...")
-@time divideplateaus!(seg)
-println("findbasins...")
-@time (seg, counts, counts0) = findbasins!(seg)
-println("regiongraph...")
-@time rg = regiongraph(aff, seg, length(counts))
-println("mergeregions...")
-@time new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
-println("mst...")
-@time rg = mst(new_rg, length(counts))
-
+watershed(aff; is_threshold_relative=true)
 
 println("steepestascent...\n\n")
 @time seg = steepestascent(aff, low, high)
