@@ -7,8 +7,8 @@ function watershed(aff::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
     if is_threshold_relative
       info("use percentage threshold")
       b, count = hist(aff[:], 100000)
-      low  = percent2thd(b, count, params[:low])
-      high = percent2thd(b, count, params[:high])
+      low  = percent2thd(b, count, low)
+      high = percent2thd(b, count, high)
       thds = Vector{Tuple}()
       for st in thresholds
         push!(thds, tuple(st[1], percent2thd(b, count, st[2])))
