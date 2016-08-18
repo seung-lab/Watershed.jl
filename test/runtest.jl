@@ -1,6 +1,6 @@
 using Watershed
 
-aff = rand(Float32, 1024,1024,128,3);
+aff = rand(Float32, 256,256,16,3);
 
 # watershed(aff)
 
