@@ -3,7 +3,18 @@
 export wsseg, watershed, atomicseg, mergerg!, mergerg, rg2dend
 
 function watershed(aff::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
-                    thresholds::Vector=[(800,0.2)], dust_size::Int=600)
+                    thresholds::Vector=[(800,0.2)], dust_size::Int=600; is_threshold_relative=false)
+    if is_threshold_relative
+      info("use percentage threshold")
+      b, count = hist(aff[:], 100000)
+      low  = percent2thd(b, count, params[:low])
+      high = percent2thd(b, count, params[:high])
+      thds = Vector{Tuple}()
+      for st in thresholds
+        push!(thds, tuple(st[1], percent2thd(b, count, st[2])))
+      end
+      thresholds = thds
+    end
     println("watershed, low: $low, high: $high")
     # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
     seg = steepestascent(aff, low, high)
@@ -19,7 +30,18 @@ function atomicseg(aff::Taff,
             low::AbstractFloat=0.1,
             high::AbstractFloat=0.8,
             thresholds::Vector=[(800,0.2)],
-            dust_size::Int=600)
+            dust_size::Int=600; is_threshold_relative=false)
+    if is_threshold_relative
+      info("use percentage threshold")
+      b, count = hist(aff[:], 100000)
+      low  = percent2thd(b, count, params[:low])
+      high = percent2thd(b, count, params[:high])
+      thds = Vector{Tuple}()
+      for st in thresholds
+        push!(thds, tuple(st[1], percent2thd(b, count, st[2])))
+      end
+      thresholds = thds
+    end
     println("watershed, low: $low, high: $high")
     # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
     println("steepestascent...")
@@ -130,4 +152,31 @@ function rg2dend(rg::Trg)
         dend[i,2] = t[3]
     end
     return dend, dendValues
+end
+
+
+#=doc
+.. function::
+   Transform ralative threshold to absolute threshold
+   Args:
+   -
+=#
+function percent2thd(e::FloatRange{Float64}, count::Vector{Int64}, rt::AbstractFloat)
+    # total number
+    tn = sum(count)
+    # the rank of voxels corresponding to the threshold
+    rank = tn * rt
+    # accumulate the voxel number
+    avn = 0
+    for i in 1:length(e)
+        avn += count[i]
+        if avn >= rank
+            return e[i]
+        end
+    end
+end
+
+function percent2thd(arr::Array, rt::AbstractFloat, nbin=100000)
+    e, count = hist(arr[:], nbin)
+    return percent2thd(e, count, rt)
 end
