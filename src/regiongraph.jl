@@ -31,11 +31,11 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
     low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
 
     # edge list representation
-    edges=DefaultDict(Tuple{Ts,Ts},Ta,low)
+    edges=DefaultOrderedDict(Tuple{Ts,Ts},Ta,low)
     # keys are vertex pairs (i,j) where i \leq j
     # values are edge weights
     # efficiency is competitive with Array of Dicts and code is simpler
-    #sizehint!(edges, length(aff)/3)
+    sizehint!(edges, div(length(aff),3))
 
     for z=1:zdim
         for y=1:ydim
@@ -60,26 +60,18 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
 
     # separate weights and vertices in two arrays
     nedges = length(edges)
-    weights = zeros(Ta,nedges)
-    vertices = zeros(Ts,2,nedges)
-    i = 1
-    for (p, weight) in edges
-        weights[i]=weight
-        vertices[:,i]=collect(p)
-        i +=1
-    end
     println("Region graph size: ", nedges)
-
-    # sort both arrays so that weights decrease
-    p = sortperm(weights,rev=true)
-    weights = weights[p]
-    vertices = vertices[:,p]
 
     # repackage in array of typles
     rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
-    for i = 1:nedges
-        rg[i]= (weights[i], vertices[1,i], vertices[2,i])
+    i = 1
+    for (k,v) in edges
+      rg[i]= (v, k[1], k[2])
+      i += 1
     end
+
+    # sort both arrays so that weights decrease
+    sort!(rg, alg=QuickSort, rev=true)
 
     return rg
 end
