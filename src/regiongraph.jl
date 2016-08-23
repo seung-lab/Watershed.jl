@@ -25,61 +25,50 @@ Background voxels (those with ID=0) are ignored.
 """
 
 function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
-    (xdim,ydim,zdim)=size(seg)
-    @assert size(aff) == (xdim,ydim,zdim,3)
+  (xdim,ydim,zdim)=size(seg)
+  @assert size(aff) == (xdim,ydim,zdim,3)
 
-    low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
+  low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
 
-    # edge list representation
-    edges=DefaultDict(Tuple{Ts,Ts},Ta,low)
-    # keys are vertex pairs (i,j) where i \leq j
-    # values are edge weights
-    # efficiency is competitive with Array of Dicts and code is simpler
-    #sizehint!(edges, length(aff)/3)
+  # edge list representation
+  edges=DefaultDict(Tuple{Ts,Ts},Ta,low)
+  # keys are vertex pairs (i,j) where i \leq j
+  # values are edge weights
+  # efficiency is competitive with Array of Dicts and code is simpler
+  #sizehint!(edges, length(aff)/3)
 
-    for z=1:zdim
-        for y=1:ydim
-            for x=1:xdim
-                if seg[x,y,z]!=0   # ignore background voxels
-                    if ( (x > 1) && seg[x-1,y,z]!=0 && seg[x,y,z]!=seg[x-1,y,z])
-                        p = minmax(seg[x,y,z], seg[x-1,y,z])
-                        edges[p] = max(edges[p], aff[x,y,z,1])
-                    end
-                    if ( (y > 1) && seg[x,y-1,z]!=0 && seg[x,y,z]!=seg[x,y-1,z])
-                        p = minmax(seg[x,y,z], seg[x,y-1,z])
-                        edges[p] = max(edges[p], aff[x,y,z,2])
-                    end
-                    if ( (z > 1) && seg[x,y,z-1]!=0 && seg[x,y,z]!=seg[x,y,z-1])
-                        p = minmax(seg[x,y,z], seg[x,y,z-1])
-                        edges[p] = max(edges[p], aff[x,y,z,3])
-                    end
-                end
-            end
+  for z=1:zdim
+    for y=1:ydim
+      for x=1:xdim
+        if seg[x,y,z]!=0   # ignore background voxels
+          if ( (x > 1) && seg[x-1,y,z]!=0 && seg[x,y,z]!=seg[x-1,y,z])
+            p = minmax(seg[x,y,z], seg[x-1,y,z])
+            edges[p] = max(edges[p], aff[x,y,z,1])
+          end
+          if ( (y > 1) && seg[x,y-1,z]!=0 && seg[x,y,z]!=seg[x,y-1,z])
+            p = minmax(seg[x,y,z], seg[x,y-1,z])
+            edges[p] = max(edges[p], aff[x,y,z,2])
+          end
+          if ( (z > 1) && seg[x,y,z-1]!=0 && seg[x,y,z]!=seg[x,y,z-1])
+            p = minmax(seg[x,y,z], seg[x,y,z-1])
+            edges[p] = max(edges[p], aff[x,y,z,3])
+          end
         end
+      end
     end
+  end
 
-    # separate weights and vertices in two arrays
-    nedges = length(edges)
-    weights = zeros(Ta,nedges)
-    vertices = zeros(Ts,2,nedges)
-    i = 1
-    for (p, weight) in edges
-        weights[i]=weight
-        vertices[:,i]=collect(p)
-        i +=1
-    end
-    println("Region graph size: ", nedges)
+  # separate weights and vertices in two arrays
+  nedges = length(edges)
+  println("Region graph size: ", nedges)
 
-    # sort both arrays so that weights decrease
-    p = sortperm(weights,rev=true)
-    weights = weights[p]
-    vertices = vertices[:,p]
-
-    # repackage in array of typles
-    rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
-    for i = 1:nedges
-        rg[i]= (weights[i], vertices[1,i], vertices[2,i])
-    end
-
-    return rg
+  # repackage in array of typles
+  rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
+  i = 0
+  for (k,v) in edges
+    i += 1
+    rg[i]= (v, k[1], k[2])
+  end
+  sort!(rg, by=x->x[1], alg=QuickSort, rev=true)
+  return rg
 end
