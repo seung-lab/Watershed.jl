@@ -1,6 +1,6 @@
 # load dependencies
 
-export wsseg, watershed, atomicseg, mergerg!, mergerg, rg2dend
+export wsseg, watershed, aff2sgm, atomicseg, mergerg!, mergerg, rg2dend
 
 function _baseseg(aff::Taff,
             low::AbstractFloat,

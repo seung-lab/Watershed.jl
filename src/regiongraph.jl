@@ -62,13 +62,36 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
   nedges = length(edges)
   println("Region graph size: ", nedges)
 
-  # repackage in array of typles
-  rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
-  i = 0
-  for (k,v) in edges
-    i += 1
-    rg[i]= (v, k[1], k[2])
+  if VERSION < v"0.5-"
+    weights = zeros(Ta,nedges)
+    vertices = zeros(Ts,2,nedges)
+    i = 1
+    for (p, weight) in edges
+      weights[i]=weight
+      vertices[:,i]=collect(p)
+      i +=1
+    end
+    println("Region graph size: ", nedges)
+
+    # sort both arrays so that weights decrease
+    p = sortperm(weights,rev=true)
+    weights = weights[p]
+    vertices = vertices[:,p]
+
+    # repackage in array of typles
+    rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
+    for i = 1:nedges
+      rg[i]= (weights[i], vertices[1,i], vertices[2,i])
+    end
+  else
+    # repackage in array of typles
+    rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
+    i = 0
+    for (k,v) in edges
+      i += 1
+      rg[i]= (v, k[1], k[2])
+    end
+    sort!(rg, by=x->x[1], alg=QuickSort, rev=true)
   end
-  sort!(rg, by=x->x[1], alg=QuickSort, rev=true)
   return rg
 end
