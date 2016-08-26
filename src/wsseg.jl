@@ -1,4 +1,5 @@
 # load dependencies
+using StatsBase
 
 export wsseg, watershed, aff2sgm, atomicseg, mergerg!, mergerg, rg2dend
 
@@ -10,14 +11,15 @@ function _baseseg(aff::Taff,
   if is_threshold_relative
     info("use percentage threshold")
     if length(aff) > 1024*1024*128
-      b, count = hist(aff[1:1024*1024*128], 1000000)
+      h = StatsBase.fit(Histogram,
+                        aff[1:1024*1024*128], nbins = 1000000)
     else
-      b, count = hist(aff[:], 1000000)
+      h = StatsBase.fit(Histogram, aff[:], nbins = 1000000)
     end
-    low  = _percent2thd(b, count, low)
-    high = _percent2thd(b, count, high)
+    low  = _percent2thd(h, low)
+    high = _percent2thd(h, high)
     for i = 1:length( thresholds )
-      thresholds[i] = tuple(thresholds[i][1], _percent2thd(b, count, thresholds[i][2]))
+      thresholds[i] = tuple(thresholds[i][1], _percent2thd(h, thresholds[i][2]))
     end
   end
   println("watershed, low: $low, high: $high")
@@ -155,22 +157,18 @@ end
    Args:
    -
 =#
-function _percent2thd(e::FloatRange{Float64}, count::Vector{Int64}, rt::AbstractFloat)
-    # total number
-    tn = sum(count)
-    # the rank of voxels corresponding to the threshold
-    rank = tn * rt
-    # accumulate the voxel number
-    avn = 0
-    for i in 1:length(e)
-        avn += count[i]
-        if avn >= rank
-            return e[i]
-        end
-    end
-end
 
-function _percent2thd(arr::Array, rt::AbstractFloat, nbin=100000)
-    e, count = hist(arr[:], nbin)
-    return percent2thd(e, count, rt)
+function _percent2thd(h::StatsBase.Histogram, rt::AbstractFloat)
+  # total number
+  tn = sum(h.weights)
+  # the rank of voxels corresponding to the threshold
+  rank = tn * rt
+  # accumulate the voxel number
+  avn = 0
+  for i in 1:length(h.weights)
+      avn += h.weights[i]
+      if avn >= rank
+          return h.edges[1][i]
+      end
+  end
 end
