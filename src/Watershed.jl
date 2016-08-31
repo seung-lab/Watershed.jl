@@ -10,6 +10,6 @@ include("mergeregions.jl")
 include("mst.jl")
 
 # the main functions
-include("wsseg.jl")
+include("segment.jl")
 
 end
