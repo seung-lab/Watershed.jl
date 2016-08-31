@@ -132,7 +132,7 @@ function wsseg(affs, dim = 3, low=0.3, high=0.9, thresholds=[(256,0.3)], dust_si
 end
 
 """
-transform rg to segmentPairsrogram for omnification
+transform rg to dendrogram for omnification
 """
 function rg2segmentPairs(rg::RegionGraph)
     N = length(rg)

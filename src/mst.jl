@@ -14,9 +14,9 @@ export mst
 
 The MST effectively represents the segmentPairsrogram for single-linkage
 clustering.  Each edge `(weight,id1,id2)` in the MST represents an
-internal vertex of the segmentPairsrogram located at height = `weight`, i.e.,
+internal vertex of the dendrogram located at height = `weight`, i.e.,
 a merging of two clusters with score `weight`.  The MST contains a bit
-more information than the segmentPairsrogram, because `id1` and `id2` are the
+more information than the dendrogram, because `id1` and `id2` are the
 root IDs of the two clusters, i.e., the maximum weight edge between
 the two clusters is between their elements `id1` and `id2`.
 
