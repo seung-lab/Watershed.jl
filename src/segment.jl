@@ -1,9 +1,9 @@
 # load dependencies
 using StatsBase
 
-export wsseg, watershed, aff2sgm, atomicseg, mergerg!, mergerg, rg2dend
+export wsseg, watershed, aff2sgm, atomicseg, mergerg!, mergerg, rg2segmentPairs
 
-function _baseseg(aff::Taff,
+function _baseseg(aff::AffinityMap,
             low::AbstractFloat,
             high::AbstractFloat,
             thresholds::Vector,
@@ -37,7 +37,7 @@ function _baseseg(aff::Taff,
   return seg, new_rg, counts
 end
 
-function atomicseg(aff::Taff,
+function atomicseg(aff::AffinityMap,
             low::AbstractFloat=0.1,
             high::AbstractFloat=0.8,
             thresholds::Vector=[(800,0.2)],
@@ -46,21 +46,21 @@ function atomicseg(aff::Taff,
     return seg
 end
 
-function watershed(aff::Taff, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
+function watershed(aff::AffinityMap, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
                     thresholds::Vector=[(800,0.2)], dust_size::Int=600; is_threshold_relative=false)
     seg, new_rg, counts = _baseseg(aff, low, high, thresholds, dust_size; is_threshold_relative = is_threshold_relative)
     rg = mst(new_rg, length(counts))
     return (seg, rg)
 end
 
-function mergerg(seg::Tseg, rg::Trg, thd::AbstractFloat=0.5)
+function mergerg(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
     # the returned segmentation
     ret = deepcopy(seg)
     mergerg!(ret, rg, thd)
     return ret
 end
 
-function mergerg!(seg::Tseg, rg::Trg, thd::AbstractFloat=0.5)
+function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
     # get the ralative parent dict
     pd = Dict()
     # initialized as children and parents
@@ -136,18 +136,18 @@ end
 """
 transform rg to dendrogram for omnification
 """
-function rg2dend(rg::Trg)
+function rg2segmentPairs(rg::RegionGraph)
     N = length(rg)
-    dendValues = zeros(Float32, N)
-    dend = zeros(UInt32, N,2)
+    segmentPairAffinities = zeros(Float32, N)
+    segmentPairs = zeros(UInt32, N,2)
 
     for i in 1:N
         t = rg[i]
-        dendValues[i] = t[1]
-        dend[i,1] = t[2]
-        dend[i,2] = t[3]
+        segmentPairAffinities[i] = t[1]
+        segmentPairs[i,1] = t[2]
+        segmentPairs[i,2] = t[3]
     end
-    return dend, dendValues
+    return segmentPairs, segmentPairAffinities
 end
 
 

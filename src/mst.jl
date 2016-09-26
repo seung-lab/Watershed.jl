@@ -12,7 +12,7 @@ export mst
 * `max_segid`: largest ID in region graph
 * `regiontree`: *maximal* spanning tree (MST) of region graph as list of edges, array of `(weight,id1,id2)` tuples. The vertices in each edge are ordered so that `id2` is unique across edges. In other words, id1 and id2 correspond to parent and child in the tree. The code places the root of the tree at segid=1
 
-The MST effectively represents the dendrogram for single-linkage
+The MST effectively represents the segmentPairsrogram for single-linkage
 clustering.  Each edge `(weight,id1,id2)` in the MST represents an
 internal vertex of the dendrogram located at height = `weight`, i.e.,
 a merging of two clusters with score `weight`.  The MST contains a bit

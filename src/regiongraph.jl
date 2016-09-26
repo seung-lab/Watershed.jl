@@ -31,7 +31,7 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
   low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
 
   # edge list representation
-  edges=DefaultDict(Tuple{Ts,Ts},Ta,low)
+  edges=DefaultOrderedDict(Tuple{Ts,Ts},Ta,low)
   # keys are vertex pairs (i,j) where i \leq j
   # values are edge weights
   # efficiency is competitive with Array of Dicts and code is simpler
