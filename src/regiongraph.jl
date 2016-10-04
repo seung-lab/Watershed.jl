@@ -25,8 +25,8 @@ Background voxels (those with ID=0) are ignored.
 """
 
 function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
-    @assert size(aff) == (xdim,ydim,zdim,3)
     (xdim,ydim,zdim)=size(seg)
+    @assert size(aff) == (xdim,ydim,zdim,3)
 
     low = convert(Ta,0)  # choose a value lower than any affinity in the region graph
     ZERO_SEG = convert(Ts, 0)
