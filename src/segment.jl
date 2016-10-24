@@ -10,11 +10,12 @@ function _baseseg(aff::AffinityMap,
             dust_size::Int; is_threshold_relative=false)
   if is_threshold_relative
     info("use percentage threshold")
-    if length(aff) > 1024*1024*128
-      h = StatsBase.fit(Histogram,
-                        aff[1:1024*1024*128], nbins = 1000000)
+    @show aff[1:200]
+    if length(aff) > 3*1024*1024*128
+        h = StatsBase.fit(Histogram,
+                        aff[1:3*1024*1024*128]; nbins = 1000000)
     else
-      h = StatsBase.fit(Histogram, aff[:], nbins = 1000000)
+      h = StatsBase.fit(Histogram, aff[:]; nbins = 1000000)
     end
     low  = _percent2thd(h, low)
     high = _percent2thd(h, high)
@@ -22,7 +23,7 @@ function _baseseg(aff::AffinityMap,
       thresholds[i] = tuple(thresholds[i][1], _percent2thd(h, thresholds[i][2]))
     end
   end
-  println("watershed, low: $low, high: $high")
+  info("watershed, low: $low, high: $high, thresholds: $(thresholds)")
   # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
   println("steepestascent...")
   seg = steepestascent(aff, low, high)
