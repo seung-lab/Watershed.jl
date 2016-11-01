@@ -93,7 +93,7 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
             i += 1
             rg[i]= (v, k[1], k[2])
         end
-        sort!(rg, by=x->x[1], alg=QuickSort, rev=true)
+        sort!(rg, by=x->x[1], alg=MergeSort, rev=true)
     end
     return rg
 end
