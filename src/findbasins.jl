@@ -37,8 +37,7 @@ The MSB indicates whether a voxel has been assigned a basin ID.  The MSB definit
 
 function findbasins{T}(sag::Array{T,3})
     seg = copy(sag)
-    (seg, counts, counts0) = findbasins!(seg)
-    return (seg, counts, counts0)
+    return findbasins!(seg)
 end
 
 # in-place version
@@ -47,7 +46,7 @@ function findbasins!{T}(seg::Array{T,3})
     # and is transformed in-place to yield the segmentation into basins
     (xdim,ydim,zdim) = size(seg)
     const dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
-    const dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
+    const dirmask  = [0x00001, 0x00002, 0x00004, 0x00008, 0x00010, 0x00020]
 
     counts0 = 0  # number of background voxels
     counts = Int64[]  # voxel counts for each basin
@@ -55,28 +54,28 @@ function findbasins!{T}(seg::Array{T,3})
 
     next_id = 1   # initialize basin ID
     for idx in eachindex(seg)
-        if seg[idx] == 0   # background voxel (no edges at all)
+        if seg[idx] == 0x00000000   # background voxel (no edges at all)
             seg[idx] |= high_bit(T)   # mark as assigned
             counts0 += 1;
-        elseif (seg[idx] & high_bit(T))==0  # not yet assigned
+        elseif (seg[idx] & high_bit(T))==0x00000000  # not yet assigned
             push!(bfs,idx)     # enqueue
-            seg[idx] |= 0x40    # mark as visited
+            seg[idx] |= 0x00040    # mark as visited
 
             bfs_index = 1  # follow trajectory starting from idx
             while ( bfs_index <= length(bfs) )
                 me = bfs[bfs_index]
                 for d = 1:6
-                    if ( seg[me] & dirmask[d] ) !=0  # outgoing edge
+                    if ( seg[me] & dirmask[d] ) != 0x00000000  # outgoing edge
                         him = me + dir[d]  # target of edge
-                        if ( seg[him] & high_bit(T) ) !=0 # already assigned
+                        if ( seg[him] & high_bit(T) ) != 0x00000000 # already assigned
                             for it in bfs  # assign entire queue to same ID
                                 seg[it] = seg[him]  # including high bit
                             end
                             counts[ seg[him] & low_bits(T) ] += length(bfs);
                             bfs = Int64[]  # empty queue
                             break
-                        elseif ( ( seg[him] & 0x40 ) == 0 )  # not visited
-                            seg[him] |= 0x40;    # mark as visited
+                        elseif ( ( seg[him] & 0x00040 ) == 0x00000000 )  # not visited
+                            seg[him] |= 0x00040;    # mark as visited
                             push!(bfs,him)    # enqueue
                         # else ignore since visited (try next direction)
                         end

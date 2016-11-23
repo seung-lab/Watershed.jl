@@ -1,6 +1,6 @@
 using ParallelAccelerator
 
-export steepestascent
+# export steepestascent
 
 """
 `STEEPESTASCENT` - Construct steepest ascent graph from affinity graph
@@ -25,15 +25,20 @@ We follow the convention that:
 * `aff[x,y,z,3]` is affinity of voxels at [x,y,z-1] and [x,y,z]
 """
 
-@acc function steepestascent{T}(aff::Array{T, 4},low,high)
+function steepestascent{T}(aff::Array{T, 4},low,high)
     steepestascent(aff,convert(T,low),convert(T,high))
 end
 
-@acc function steepestascent{T}(aff::Array{T, 4},low::T,high::T)
+function steepestascent{T}(aff::Array{T, 4},low::T,high::T)
     @assert size(aff,4)==3
     (xdim,ydim,zdim) = size(aff)     # extract image size
     sag=zeros(UInt32,xdim,ydim,zdim)  # initialize steepest ascent graph
 
+    sag = setedge(aff, sag, low, high)
+    sag
+end
+
+function setedge_serial{T}(aff::Array{T,4}, sag::Array{UInt32, 3}, low::T, high::T)
     for z = 1:zdim
         for y=1:ydim
             for x=1:xdim
@@ -47,10 +52,10 @@ end
                 # aff=low for edges directed outside boundaries of image
 
                 m=max(negx,negy)
-		m=max(m,negz)
-		m=max(m,posx)
-		m=max(m,posy)
-		m=max(m,posz)
+        		m=max(m,negz)
+        		m=max(m,posx)
+        		m=max(m,posy)
+        		m=max(m,posz)
 #                m = maximum((negx,negy,negz,posx,posy,posz))
                 #                @printf("%d %d %d %f %f %f %f %f %f\n",x,y,z,negx,negy,negz,posx,posy,posz)
 
@@ -66,5 +71,34 @@ end
             end
         end
     end
-    sag
+    return sag
 end
+
+@acc function setedge_parallel{T}(aff::Array{T,4}, sag::Array{UInt32, 3}, low::T, high::T)
+    # x positive affinity
+    runStencil(sag, aff[:,:,:,1], aff[:,:,:,2], aff[:,:,:,3], :oob_src_zero) do s, xa, ya, za
+        negx = xa[0,0,0]
+        negy = ya[0,0,0]
+        negz = za[0,0,0]
+        posx = xa[1,0,0]
+        posy = ya[0,1,0]
+        posz = za[0,0,2]
+
+        m = maximum((negx,negy,negz,posx,posy,posz))
+
+        # keep edges with maximal affinity
+        if ( m > low )   # no edges at all if m <= low
+            if ( negx == m || negx >= high ) sag[0,0,0] |= 0x01; end
+            if ( negy == m || negy >= high ) sag[0,0,0] |= 0x02; end
+            if ( negz == m || negz >= high ) sag[0,0,0] |= 0x04; end
+            if ( posx == m || posx >= high ) sag[0,0,0] |= 0x08; end
+            if ( posy == m || posy >= high ) sag[0,0,0] |= 0x10; end
+            if ( posz == m || posz >= high ) sag[0,0,0] |= 0x20; end
+        end
+        return s, xa, ya, za
+    end
+
+    return sag
+end
+
+setedge = setedge_parallel
