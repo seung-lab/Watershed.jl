@@ -48,23 +48,23 @@ function mst{Ta,Ts}(rg::Vector{Tuple{Ta,Ts,Ts}}, max_segid)
     # rest of code only necessary for ordering the vertex pairs in each edge
     # bfs (level order) tree traversal, i.e., topological sort
     order = zeros(UInt32,max_segid)   # will contain numbering of vertices
-    curr = 1
+    curr = 0x00000001
 
     for i = 1:max_segid
-        if order[i] == 0
+        if order[i] == 0x00000000
             bfs = Deque{Int}()
             push!(bfs,i)
             order[i] = curr
-            curr += 1
+            curr += 0x00000001
 
             while length(bfs)>0
                 x = front(bfs)
                 shift!(bfs)
 
                 for y in adjacency[x]
-                    if order[y] == 0
+                    if order[y] == 0x00000000
                         order[y] = curr
-                        curr += 1
+                        curr += 0x00000001
                         push!(bfs,y)
                     end
                 end

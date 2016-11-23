@@ -40,33 +40,33 @@ function mergeregions!(seg, rg, counts, thresholds, dust_size = 0)
     # define mapping from parents to new segment IDs
     # and apply to redefine counts
     remaps = zeros(UInt32,length(counts))     # generalize to include UInt64
-    next_id = 1
+    next_id = 0x00000001
     for id = 1:length(counts)
         s = find_root(sets,id)
-        if ( (remaps[s] == 0) && (counts[s] >= dust_size) )
+        if ( (remaps[s] == 0x00000000) && (counts[s] >= dust_size) )
             remaps[s] = next_id
             counts[next_id] = counts[s]    # exercise: prove that next_id < counts
-            next_id += 1
+            next_id += 0x00000001
         end
     end
-    resize!(counts,next_id-1)
+    resize!(counts, next_id - 0x00000001)
 
     # apply remapping to voxels in seg
     # note that dust regions will get assigned to background
     for idx in eachindex(seg)
-        if seg[idx] !=0    # only foreground voxels
+        if seg[idx] !=0x00000000    # only foreground voxels
             seg[idx] = remaps[find_root(sets,seg[idx])]
         end
     end
-    println("Done with remapping, total: ", (next_id-1), " regions")
+    println("Done with remapping, total: ", (next_id-0x000001), " regions")
 
     # apply remapping to region graph
-    in_rg = [Set{UInt32}() for i=1:next_id-1]
+    in_rg = [Set{UInt32}() for i=0x000001:next_id-0x000001]
     new_rg = Array{Tuple{Float64,UInt32,UInt32},1}(0)
     for (weight, id1, id2) in rg
         s1 = remaps[find_root(sets,id1)]
         s2 = remaps[find_root(sets,id2)]
-        if ( s1 != s2 && s1 !=0 && s2 !=0)  # ignore dust regions
+        if ( s1 != s2 && s1 !=0x00000000 && s2 !=0x00000000)  # ignore dust regions
             (s1,s2) = minmax(s1,s2)
             if ~in(s2,in_rg[s1])
                 push!(new_rg,(weight, s1, s2))
