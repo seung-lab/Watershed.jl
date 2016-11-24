@@ -141,11 +141,10 @@ function rg2segmentPairs(rg::RegionGraph)
     segmentPairAffinities = zeros(Float32, N)
     segmentPairs = zeros(UInt32, N,2)
 
-    for i in 1:N
-        t = rg[i]
-        segmentPairAffinities[i] = t[1]
-        segmentPairs[i,1] = t[2]
-        segmentPairs[i,2] = t[3]
+    Threads.@threads for i in 1:N
+        segmentPairAffinities[i] = rg[i][1]
+        segmentPairs[i,1] = rg[i][2]
+        segmentPairs[i,2] = rg[i][3]
     end
     return segmentPairs, segmentPairAffinities
 end
@@ -165,7 +164,7 @@ function _percent2thd(h::StatsBase.Histogram, rt::AbstractFloat)
   rank = tn * rt
   # accumulate the voxel number
   avn = 0
-  for i in 1:length(h.weights)
+  for i in eachindex(h.weights)
       avn += h.weights[i]
       if avn >= rank
           return h.edges[1][i]

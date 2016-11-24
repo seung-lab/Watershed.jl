@@ -98,7 +98,7 @@ function findbasins!{T}(seg::Array{T,3})
 
     println("found: ", (next_id-1)," components")
 
-    for idx in eachindex(seg)
+    Threads.@threads for idx in eachindex(seg)
         seg[idx] &= low_bits(T)     # clear MSB
     end
 
