@@ -3,11 +3,18 @@ using StatsBase
 
 export wsseg, watershed, aff2sgm, atomicseg, mergerg!, mergerg, rg2segmentPairs
 
-function _baseseg(aff::AffinityMap,
-            low::AbstractFloat,
-            high::AbstractFloat,
-            thresholds::Vector,
-            dust_size::Int; is_threshold_relative=false)
+const DEFAULT_LOW = Float32(0.1)
+const DEFAULT_HIGH = Float32(0.8)
+const DEFAULT_THRESHOLDS = [(800,Float32(0.2))]
+const DEFAULT_DUST_SIZE = 600
+const DEFAULT_IS_THRESHOLD_RELATIVE = true
+
+function _baseseg(aff::AffinityMap;
+            low::AbstractFloat = DEFAULT_LOW,
+            high::AbstractFloat = DEFAULT_HIGH,
+            thresholds::Vector = DEFAULT_THRESHOLDS,
+            dust_size::Int = DEFAULT_DUST_SIZE,
+            is_threshold_relative= DEFAULT_IS_THRESHOLD_RELATIVE )
   if is_threshold_relative
     info("use percentage threshold")
     if length(aff) > 3*1024*1024*128
@@ -22,7 +29,7 @@ function _baseseg(aff::AffinityMap,
       thresholds[i] = tuple(thresholds[i][1], _percent2thd(h, thresholds[i][2]))
     end
   end
-  info("absolute watershed threshold: low: $low, high: $high, thresholds: $(thresholds)")
+  info("absolute watershed threshold: low: $low, high: $high, thresholds: $(thresholds), dust: $(dust_size)")
   # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
   println("steepestascent...")
   seg = steepestascent(aff, low, high)
@@ -37,36 +44,45 @@ function _baseseg(aff::AffinityMap,
   return seg, new_rg, counts
 end
 
-function atomicseg(aff::AffinityMap,
-            low::AbstractFloat=0.1,
-            high::AbstractFloat=0.8,
-            thresholds::Vector=[(800,0.2)],
-            dust_size::Int=600; is_threshold_relative=false)
-    seg, rg, counts = _baseseg(aff, low, high, thresholds, dust_size; is_threshold_relative = is_threshold_relative)
+function atomicseg(aff::AffinityMap;
+            low::AbstractFloat      = DEFAULT_LOW,
+            high::AbstractFloat     = DEFAULT_HIGH,
+            thresholds::Vector      = DEFAULT_THRESHOLDS,
+            dust_size::Int          = DEFAULT_DUST_SIZE,
+            is_threshold_relative   = DEFAULT_IS_THRESHOLD_RELATIVE)
+    seg, rg, counts = _baseseg(aff; low=low, high=high, thresholds=thresholds,
+                                    dust_size = dust_size,
+                                    is_threshold_relative = is_threshold_relative)
     return seg
 end
 
-function watershed(aff::AffinityMap, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
-                    thresholds::Vector=[(800,0.2)], dust_size::Int=600; is_threshold_relative=false)
-    seg, new_rg, counts = _baseseg(aff, low, high, thresholds, dust_size; is_threshold_relative = is_threshold_relative)
+function watershed( aff::AffinityMap;
+                    low::AbstractFloat      = DEFAULT_LOW,
+                    high::AbstractFloat     = DEFAULT_HIGH,
+                    thresholds::Vector      = DEFAULT_THRESHOLDS,
+                    dust_size::Int          = DEFAULT_DUST_SIZE,
+                    is_threshold_relative   = DEFAULT_IS_THRESHOLD_RELATIVE)
+    seg, new_rg, counts = _baseseg(aff; low=low, high=high,
+                                    thresholds=thresholds, dust_size=dust_size,
+                                    is_threshold_relative = is_threshold_relative)
     rg = mst(new_rg, length(counts))
     return (seg, rg)
 end
 
-function mergerg(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
+function mergerg(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=Float32(0.5))
     # the returned segmentation
     ret = deepcopy(seg)
     mergerg!(ret, rg, thd)
     return ret
 end
 
-function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
+function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=Float32(0.5))
     # get the ralative parent dict
     pd = Dict()
     # initialized as children and parents
     num = 0
-    for t in rg
-        a, c, p = t
+    # affinity, child, parent
+    for (a,c,p) in rg
         @assert p>0 && c>0
         if a >= thd
             num = num + 1
@@ -81,9 +97,8 @@ function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
     rd = Dict()
     # root set
     rset = IntSet()
-    for t in rg
+    for (a, c0, p0) in rg
         # get affinity and segment IDs of parent and child
-        a, c0, p0 = t
         c = c0
         p = p0
         while a >= thd && haskey(pd,p)
