@@ -32,7 +32,7 @@ function regiongraph{Ta,Ts}(aff::Array{Ta,4},seg::Array{Ts,3},max_segid)
     ZERO_SEG = convert(Ts, 0)
 
     # edge list representation
-    edges = DefaultOrderedDict(Tuple{Ts,Ts}, Ta, low)
+    edges = DefaultOrderedDict{Tuple{Ts,Ts}, Ta}(low)
     # keys are vertex pairs (i,j) where i \leq j
     # values are edge weights
     # efficiency is competitive with Array of Dicts and code is simpler
