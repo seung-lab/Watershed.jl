@@ -1,70 +1,99 @@
 # load dependencies
+using StatsBase
 
 export wsseg, watershed, aff2sgm, atomicseg, mergerg!, mergerg, rg2segmentPairs
 
-function _baseseg(aff::AffinityMap,
-            low::AbstractFloat,
-            high::AbstractFloat,
-            thresholds::Vector,
-            dust_size::Int; is_threshold_relative=false)
-  if is_threshold_relative
-    info("use percentage threshold")
-    if length(aff) > 1024*1024*128
-      b, count = hist(aff[1:1024*1024*128], 1000000)
+const DEFAULT_LOW = Float32(0.1)
+const DEFAULT_HIGH = Float32(0.8)
+const DEFAULT_THRESHOLDS = [(800,Float32(0.2))]
+const DEFAULT_DUST_SIZE = 600
+const DEFAULT_IS_THRESHOLD_RELATIVE = true
+
+function relative2absolute( aff::AffinityMap,
+    low::AbstractFloat,
+    high::AbstractFloat,
+    thresholds::Vector)
+    info("use percentage threshold: low $(low), high $high, thresholds $thresholds")
+    if length(aff) > 3*1024*1024*128
+        h = StatsBase.fit(Histogram,
+                          aff[1:min(1024,size(aff,1)),
+                              1:min(1024,size(aff,2)),
+                              1:min(128, size(aff,3)),:][:]; 
+                          nbins = 1000000)
     else
-      b, count = hist(aff[:], 1000000)
+        h = StatsBase.fit(Histogram, aff[:]; nbins = 1000000)
     end
-    low  = _percent2thd(b, count, low)
-    high = _percent2thd(b, count, high)
+    low  = _percent2thd(h, low)
+    high = _percent2thd(h, high)
     for i = 1:length( thresholds )
-      thresholds[i] = tuple(thresholds[i][1], _percent2thd(b, count, thresholds[i][2]))
+        thresholds[i] = tuple(thresholds[i][1], _percent2thd(h, thresholds[i][2]))
     end
-  end
-  println("watershed, low: $low, high: $high")
-  # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
-  println("steepestascent...")
-  seg = steepestascent(aff, low, high)
-  println("divideplateaus...")
-  divideplateaus!(seg)
-  println("findbasins!")
-  (seg, counts, counts0) = findbasins!(seg)
-  println("regiongraph...")
-  rg = regiongraph(aff, seg, length(counts))
-  println("mergeregions...")
-  new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
-  return seg, new_rg, counts
+    return low, high, thresholds
 end
 
-function atomicseg(aff::AffinityMap,
-            low::AbstractFloat=0.1,
-            high::AbstractFloat=0.8,
-            thresholds::Vector=[(800,0.2)],
-            dust_size::Int=600; is_threshold_relative=false)
-    seg, rg, counts = _baseseg(aff, low, high, thresholds, dust_size; is_threshold_relative = is_threshold_relative)
+function _baseseg(aff::AffinityMap;
+    low::AbstractFloat = DEFAULT_LOW,
+    high::AbstractFloat = DEFAULT_HIGH,
+    thresholds::Vector = DEFAULT_THRESHOLDS,
+    dust_size::Int = DEFAULT_DUST_SIZE,
+    is_threshold_relative= DEFAULT_IS_THRESHOLD_RELATIVE )
+    if is_threshold_relative
+        low, high, thresholds = relative2absolute(aff, low, high, thresholds)
+    end
+    info("absolute watershed threshold: low: $low, high: $high, thresholds: $(thresholds), dust: $(dust_size)")
+    # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
+    println("steepestascent...")
+    seg = steepestascent(aff, low, high)
+    println("divideplateaus...")
+    divideplateaus!(seg)
+    println("findbasins!")
+    (seg, counts, counts0) = findbasins!(seg)
+    println("regiongraph...")
+    rg = regiongraph(aff, seg, length(counts))
+    println("mergeregions...")
+    new_rg = mergeregions!(seg, rg, counts, thresholds, dust_size)
+    return seg, new_rg, counts
+end
+
+function atomicseg(aff::AffinityMap;
+    low::AbstractFloat      = DEFAULT_LOW,
+    high::AbstractFloat     = DEFAULT_HIGH,
+    thresholds::Vector      = DEFAULT_THRESHOLDS,
+    dust_size::Int          = DEFAULT_DUST_SIZE,
+    is_threshold_relative   = DEFAULT_IS_THRESHOLD_RELATIVE)
+    seg, rg, counts = _baseseg(aff; low=low, high=high, thresholds=thresholds,
+    dust_size = dust_size,
+    is_threshold_relative = is_threshold_relative)
     return seg
 end
 
-function watershed(aff::AffinityMap, low::AbstractFloat=0.1, high::AbstractFloat=0.8,
-                    thresholds::Vector=[(800,0.2)], dust_size::Int=600; is_threshold_relative=false)
-    seg, new_rg, counts = _baseseg(aff, low, high, thresholds, dust_size; is_threshold_relative = is_threshold_relative)
+function watershed( aff::AffinityMap;
+    low::AbstractFloat      = DEFAULT_LOW,
+    high::AbstractFloat     = DEFAULT_HIGH,
+    thresholds::Vector      = DEFAULT_THRESHOLDS,
+    dust_size::Int          = DEFAULT_DUST_SIZE,
+    is_threshold_relative   = DEFAULT_IS_THRESHOLD_RELATIVE)
+    seg, new_rg, counts = _baseseg(aff; low=low, high=high,
+    thresholds=thresholds, dust_size=dust_size,
+    is_threshold_relative = is_threshold_relative)
     rg = mst(new_rg, length(counts))
     return (seg, rg)
 end
 
-function mergerg(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
+function mergerg(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=Float32(0.5))
     # the returned segmentation
     ret = deepcopy(seg)
     mergerg!(ret, rg, thd)
     return ret
 end
 
-function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
+function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=Float32(0.5))
     # get the ralative parent dict
     pd = Dict()
     # initialized as children and parents
     num = 0
-    for t in rg
-        a, c, p = t
+    # affinity, child, parent
+    for (a,c,p) in rg
         @assert p>0 && c>0
         if a >= thd
             num = num + 1
@@ -79,9 +108,8 @@ function mergerg!(seg::Segmentation, rg::RegionGraph, thd::AbstractFloat=0.5)
     rd = Dict()
     # root set
     rset = IntSet()
-    for t in rg
+    for (a, c0, p0) in rg
         # get affinity and segment IDs of parent and child
-        a, c0, p0 = t
         c = c0
         p = p0
         while a >= thd && haskey(pd,p)
@@ -133,44 +161,40 @@ end
 
 """
 transform rg to dendrogram for omnification
-"""
-function rg2segmentPairs(rg::RegionGraph)
-    N = length(rg)
-    segmentPairAffinities = zeros(Float32, N)
-    segmentPairs = zeros(UInt32, N,2)
+    """
+    function rg2segmentPairs(rg::RegionGraph)
+        N = length(rg)
+        segmentPairAffinities = zeros(Float32, N)
+        segmentPairs = zeros(UInt32, N,2)
 
-    for i in 1:N
-        t = rg[i]
-        segmentPairAffinities[i] = t[1]
-        segmentPairs[i,1] = t[2]
-        segmentPairs[i,2] = t[3]
+        for i in 1:N
+            t = rg[i]
+            segmentPairAffinities[i] = t[1]
+            segmentPairs[i,1] = t[2]
+            segmentPairs[i,2] = t[3]
+        end
+        return segmentPairs, segmentPairAffinities
     end
-    return segmentPairs, segmentPairAffinities
-end
 
 
-#=doc
-.. function::
-   Transform ralative threshold to absolute threshold
-   Args:
-   -
-=#
-function _percent2thd(e::FloatRange{Float64}, count::Vector{Int64}, rt::AbstractFloat)
-    # total number
-    tn = sum(count)
-    # the rank of voxels corresponding to the threshold
-    rank = tn * rt
-    # accumulate the voxel number
-    avn = 0
-    for i in 1:length(e)
-        avn += count[i]
-        if avn >= rank
-            return e[i]
+    #=doc
+    .. function::
+    Transform ralative threshold to absolute threshold
+    Args:
+    -
+    =#
+
+    function _percent2thd(h::StatsBase.Histogram, percentage::AbstractFloat)
+        # total number
+        totalVoxelNum = sum(h.weights)
+        # the rank of voxels corresponding to the threshold
+        rank = totalVoxelNum * percentage
+        # accumulate the voxel number
+        accumulatedVoxelNum = 0
+        for i in 1:length(h.weights)
+            accumulatedVoxelNum += h.weights[i]
+            if accumulatedVoxelNum >= rank
+                return h.edges[1][i]
+            end
         end
     end
-end
-
-function _percent2thd(arr::Array, rt::AbstractFloat, nbin=100000)
-    e, count = hist(arr[:], nbin)
-    return percent2thd(e, count, rt)
-end
