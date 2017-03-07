@@ -16,7 +16,10 @@ function relative2absolute( aff::AffinityMap,
     info("use percentage threshold: low $(low), high $high, thresholds $thresholds")
     if length(aff) > 3*1024*1024*128
         h = StatsBase.fit(Histogram,
-        aff[1:1024,1:1024,1:128,:][:]; nbins = 1000000)
+                          aff[1:min(1024,size(aff,1)),
+                              1:min(1024,size(aff,2)),
+                              1:min(128, size(aff,3)),:][:]; 
+                          nbins = 1000000)
     else
         h = StatsBase.fit(Histogram, aff[:]; nbins = 1000000)
     end
