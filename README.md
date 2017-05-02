@@ -1,5 +1,3 @@
-This repository is a fork from [Seung lab watershed repository](https://github.com/seung-lab/watershed/tree/master/src-julia).
-
 [![Build Status](https://travis-ci.org/seung-lab/Watershed.jl.svg?branch=master)](https://travis-ci.org/seung-lab/Watershed.jl)
 
 Hierarchical watershed segmentation
