@@ -2,12 +2,12 @@ language: julia
 os: linux
 
 julia:
-        - 0.4
+        - 0.5
 
 notifications:
-        email: false
+    email: false
+git:
+    depth: 999999
 
 script:
-        - julia -e 'Pkg.add("DataStructures")'
-        - julia -e 'Pkg.clone("https://github.com/seung-lab/Watershed.jl.git")'
-        - julia -e 'Pkg.test("Watershed")'
+    - julia -e 'Pkg.clone(pwd()); Pkg.test("Watershed")'
