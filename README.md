@@ -1,4 +1,8 @@
+Julia version of 3D Watershed
+=========================================
 [![Build Status](https://travis-ci.org/seung-lab/Watershed.jl.svg?branch=master)](https://travis-ci.org/seung-lab/Watershed.jl)
+
+This is a translation of Zlateski's C++ Watershed code.
 
 Hierarchical watershed segmentation
 =======
@@ -19,8 +23,6 @@ The affinity graph is represented by three images, because the number of edges i
 
 In image processing, many watershed implementations identify the ridgelines that separate basins, and assign the label "0" to voxels on ridgelines.  Our watershed does not do this, because the ridgeline between two basins is regarded as being located on edges rather than voxels. However, our watershed can be made to label some voxels as background as follows.  Edges of the graph with affinity below a *low threshold* are removed. After this operation, some voxels become singletons, completely disconnected from the rest of the graph. These background voxels are given a label of "0" to distinguish them from foreground regions.
 
-Julia translation of Zlateski's C++ code.
-
 ## Installation
 in Julia RSVP: 
 * update the metadata: `Pkg.update()`
@@ -28,5 +30,14 @@ in Julia RSVP:
 * update the code to latest `master` branch: `Pkg.checkout("Watershed")`
 
 ## Usage
-`using Watershed`
-See `watershed.jl` for example of how to use functions.
+See test scripts for example of how to use functions. The main functions are in `segment.jl`
+
+## Citation
+```
+@article{zlateski2015image,
+  title={Image segmentation by size-dependent single linkage clustering of a watershed basin graph},
+  author={Zlateski, Aleksandar and Seung, H Sebastian},
+  journal={arXiv preprint arXiv:1505.00249},
+  year={2015}
+}
+```
