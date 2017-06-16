@@ -2,7 +2,7 @@ Julia version of 3D Watershed
 =========================================
 [![Build Status](https://travis-ci.org/seung-lab/Watershed.jl.svg?branch=master)](https://travis-ci.org/seung-lab/Watershed.jl)
 
-This is a translation of Zlateski's C++ Watershed code.
+This is a translation of [Zlateski's C++ Watershed code](https://github.com/seung-lab/watershed).
 
 Hierarchical watershed segmentation
 =======
@@ -33,7 +33,7 @@ in Julia RSVP:
 See test scripts for example of how to use functions. The main functions are in `segment.jl`
 
 ## Citation
-```
+```bibtex
 @article{zlateski2015image,
   title={Image segmentation by size-dependent single linkage clustering of a watershed basin graph},
   author={Zlateski, Aleksandar and Seung, H Sebastian},
