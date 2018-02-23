@@ -18,7 +18,7 @@ Agglomerative clustering proceeds by considering the edges of the region graph i
 """
 
 # to-do: update code to include self-edges in `new_rg`
-function mergeregions!{T,N}(seg::Array{T,N}, rg, counts, thresholds, dust_size = 0)
+function mergeregions!(seg::Array{T,N}, rg, counts, thresholds, dust_size = 0) where {T,N}
     sets = IntDisjointSets(length(counts))
     ZERO = convert(T,0)
     ONE  = convert(T,1)

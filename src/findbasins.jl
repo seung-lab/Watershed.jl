@@ -35,14 +35,14 @@ The MSB indicates whether a voxel has been assigned a basin ID.  The MSB definit
 
 # what happens if `findbasins` is applied directly to the output of `steepestascent`?  ties are resolved in an unsystematic way.  seems to differ from Cousty's watershed cuts, which alternates btw DFS and BFS.
 
-function findbasins{T}(sag::Array{T,3})
+function findbasins(sag::Array{T,3}) where T
     seg = copy(sag)
     (seg, counts, counts0) = findbasins!(seg)
     return (seg, counts, counts0)
 end
 
 # in-place version
-function findbasins!{T}(seg::Array{T,3})
+function findbasins!(seg::Array{T,3}) where T
     # seg initially contains the steepest ascent graph
     # and is transformed in-place to yield the segmentation into basins
     (xdim,ydim,zdim) = size(seg)
