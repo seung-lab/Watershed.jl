@@ -24,11 +24,11 @@ We follow the convention that:
 * `aff[x,y,z,3]` is affinity of voxels at [x,y,z-1] and [x,y,z]
 """
 
-function steepestascent{T}(aff::Array{T, 4},low,high)
+function steepestascent(aff::Array{T, 4},low,high) where T
     steepestascent(aff,convert(T,low),convert(T,high))
 end
 
-function steepestascent{T}(aff::Array{T, 4},low::T,high::T)
+function steepestascent(aff::Array{T, 4},low::T,high::T) where T
     @assert size(aff,4)==3
     (xdim,ydim,zdim) = size(aff)     # extract image size
     sag=zeros(UInt32,xdim,ydim,zdim)  # initialize steepest ascent graph
