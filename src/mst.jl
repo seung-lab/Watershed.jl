@@ -59,7 +59,7 @@ function mst(rg::Vector{Tuple{Ta,Ts,Ts}}, max_segid) where {Ta,Ts}
 
             while length(bfs)>0
                 x = front(bfs)
-                shift!(bfs)
+                popfirst!(bfs)
 
                 for y in adjacency[x]
                     if order[y] == 0

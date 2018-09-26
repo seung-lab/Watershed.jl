@@ -64,7 +64,7 @@ function mergeregions!(seg::Array{T,N}, rg, counts, thresholds, dust_size = 0) w
 
     # apply remapping to region graph
     in_rg = [Set{UInt32}() for i=ONE:next_id-ONE]
-    new_rg = Array{Tuple{Float64,UInt32,UInt32},1}(0)
+    new_rg = Array{Tuple{Float64,UInt32,UInt32},1}()
     for (weight, id1, id2) in rg
         s1 = remaps[find_root(sets,id1)]
         s2 = remaps[find_root(sets,id2)]

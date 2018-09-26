@@ -17,9 +17,9 @@ Note this is an in-place modification of `sag`
 
 function divideplateaus!(sag)
     (xdim,ydim,zdim) = size(sag)
-    const dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
-    const dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
-    const idirmask = [0x08, 0x10, 0x20, 0x01, 0x02, 0x04]
+    dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
+    dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
+    idirmask = [0x08, 0x10, 0x20, 0x01, 0x02, 0x04]
 
     # queue all vertices for which a purely outgoing edge exists
     bfs = Int64[]
