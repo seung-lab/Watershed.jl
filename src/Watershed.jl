@@ -1,6 +1,4 @@
-VERSION >=v"0.4.0-dev+6521" && __precompile__()
-
-module Watershed
+nothingmodule Watershed
 include("types.jl")
 include("steepestascent.jl")
 include("divideplateaus.jl")

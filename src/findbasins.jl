@@ -46,8 +46,8 @@ function findbasins!(seg::Array{T,3}) where T
     # seg initially contains the steepest ascent graph
     # and is transformed in-place to yield the segmentation into basins
     (xdim,ydim,zdim) = size(seg)
-    const dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
-    const dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
+    dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
+    dirmask  = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20]
 
     counts0 = 0  # number of background voxels
     counts = Int64[]  # voxel counts for each basin

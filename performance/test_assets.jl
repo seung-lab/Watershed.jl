@@ -1,7 +1,7 @@
 using Watershed
 using EMIRT
 using HDF5
-using Base.Test
+using Test
 
 aff = h5read(joinpath(Pkg.dir(), "Watershed/assets/piriform.aff.h5"), "main")
 
