@@ -1,4 +1,5 @@
-nothingmodule Watershed
+module Watershed
+
 include("types.jl")
 include("steepestascent.jl")
 include("divideplateaus.jl")

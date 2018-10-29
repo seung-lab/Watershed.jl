@@ -23,8 +23,7 @@ We follow the convention that:
 * `aff[x,y,z,2]` is affinity of voxels at [x,y-1,z] and [x,y,z]
 * `aff[x,y,z,3]` is affinity of voxels at [x,y,z-1] and [x,y,z]
 """
-
-function steepestascent(aff::Array{T, 4},low,high) where T
+@inline function steepestascent(aff::Array{T, 4},low,high) where T
     steepestascent(aff,convert(T,low),convert(T,high))
 end
 

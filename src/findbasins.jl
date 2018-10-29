@@ -31,10 +31,9 @@ visited during BFS.
 The MSB indicates whether a voxel has been assigned a basin ID.  The MSB definition is given in the functions at the end of the file for UInt32 and UInt64 cases.
 
 `findbasins` is applied to the steepest ascent graph after modification by `divideplateaus!`  By this point all paths are unique, except in maximal plateaus.
-"""
 
 # what happens if `findbasins` is applied directly to the output of `steepestascent`?  ties are resolved in an unsystematic way.  seems to differ from Cousty's watershed cuts, which alternates btw DFS and BFS.
-
+"""
 function findbasins(sag::Array{T,3}) where T
     seg = copy(sag)
     (seg, counts, counts0) = findbasins!(seg)
@@ -104,7 +103,7 @@ function findbasins!(seg::Array{T,3}) where T
 
     # manually release the memory of bfs
     bfs = []
-    gc()
+    GC.gc()
     (seg, counts, counts0)
 end
 
@@ -117,7 +116,7 @@ function high_bit(x::Type{UInt32})
 end
 
 function high_bit(x::Type{UInt64})
-    return 0x8000000000000000LL::UInt64
+    return 0x8000000000000000 * LL::UInt64
 end
 
 function low_bits(x::Type{UInt32})
@@ -125,5 +124,5 @@ function low_bits(x::Type{UInt32})
 end
 
 function low_bits(x::Type{UInt64})
-    return 0x7FFFFFFFFFFFFFFFLL::UInt64
+    return 0x7FFFFFFFFFFFFFFF * LL::UInt64
 end

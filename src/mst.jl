@@ -24,7 +24,6 @@ The code should work for general graphs.  If edges of `rg` are
 presorted by ascending weight, the code will compute the *minimal*
 spanning tree rather than the maximal spanning tree.
 """
-
 function mst(rg::Vector{Tuple{Ta,Ts,Ts}}, max_segid) where {Ta,Ts}
     regiontree = Vector{Tuple{Ta,Ts,Ts}}([])
     adjacency=[Set{UInt32}() for i=1:max_segid]    # adjacency list

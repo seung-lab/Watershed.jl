@@ -13,7 +13,7 @@ function relative2absolute( aff::AffinityMap,
     low::AbstractFloat,
     high::AbstractFloat,
     thresholds::Vector)
-    info("use percentage threshold: low $(low), high $high, thresholds $thresholds")
+    @info("use percentage threshold: low $(low), high $high, thresholds $thresholds")
     if length(aff) > 3*1024*1024*128
         h = StatsBase.fit(Histogram,
                           aff[1:min(1024,size(aff,1)),
@@ -40,7 +40,7 @@ function _baseseg(aff::AffinityMap;
     if is_threshold_relative
         low, high, thresholds = relative2absolute(aff, low, high, thresholds)
     end
-    info("absolute watershed threshold: low: $low, high: $high, thresholds: $(thresholds), dust: $(dust_size)")
+    @info("absolute watershed threshold: low: $low, high: $high, thresholds: $(thresholds), dust: $(dust_size)")
     # this seg is a steepest ascent graph, it was named as such for in-place computation to reduce memory comsuption
     println("steepestascent...")
     seg = steepestascent(aff, low, high)

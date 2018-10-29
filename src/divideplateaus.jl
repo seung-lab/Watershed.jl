@@ -14,7 +14,6 @@ Modify steepest ascent graph so as to
 
 Note this is an in-place modification of `sag`
 """
-
 function divideplateaus!(sag)
     (xdim,ydim,zdim) = size(sag)
     dir = Vector{Int64}([-1, -xdim, -xdim*ydim, 1, xdim, xdim*ydim])
@@ -35,7 +34,7 @@ function divideplateaus!(sag)
             end
         end
     end
-    gc()
+    GC.gc()
     # divide plateaus
     bfs_index = Int64(1);
     while bfs_index <= length(bfs)
@@ -58,6 +57,6 @@ function divideplateaus!(sag)
     end
     # manually release the memory of bfs
     bfs = nothing
-    gc()
+    GC.gc()
     return sag
 end

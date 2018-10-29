@@ -41,3 +41,8 @@ See test scripts for example of how to use functions. The main functions are in 
   year={2015}
 }
 ```
+
+## Credit 
+The algorithm is the same with Aleksandar Zlateski's C++ Watershed implementation. 
+This package was first translated to Julia by Sebastian Seung. 
+It is currently maintained by Jingpeng Wu.

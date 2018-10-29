@@ -23,7 +23,6 @@ The weight of a self-edge is the maximum affinity within the region.
 
 Background voxels (those with ID=0) are ignored.
 """
-
 function regiongraph(aff::Array{Ta,4},seg::Array{Ts,3},max_segid) where {Ta,Ts}
     (xdim,ydim,zdim)=size(seg)
     @assert size(aff) == (xdim,ydim,zdim,3)
@@ -65,7 +64,7 @@ function regiongraph(aff::Array{Ta,4},seg::Array{Ts,3},max_segid) where {Ta,Ts}
 
     println("use region graph construction code > julia 0.4")
     # repackage in array of typles
-    rg = Vector{Tuple{Ta,Ts,Ts}}(nedges)
+    rg = Vector{Tuple{Ta,Ts,Ts}}(undef, nedges)
     i = 0
     for (k,v) in edges
         i += 1
