@@ -15,4 +15,3 @@ thresholds = []
 dust_size = 1
 
 watershed(aff; is_threshold_relative=true)
-

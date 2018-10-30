@@ -3,7 +3,7 @@ using EMIRT
 using HDF5
 using Test
 
-aff = h5read(joinpath(dirname(@__FILE__), "../assets/piriform.aff.h5"), "main")
+aff = h5read(joinpath(@__DIR__, "../assets/piriform.aff.h5"), "main")
 
 #seg = atomicseg(aff)
 seg, rg = watershed(aff; is_threshold_relative = true)
@@ -13,9 +13,9 @@ seg, rg = watershed(aff; is_threshold_relative = true)
 
 # compare with segmentation
 
-seg0 = readseg(joinpath(dirname(@__FILE__), "../assets/piriform.seg.h5"))
+seg0 = EMIRT.IOs.readseg(joinpath(@__DIR__, "../assets/piriform.seg.h5"))
 
-err = segerror(seg0, seg)
+err = EMIRT.Evaluate.evaluate(seg0, seg)
 
 @show err
-@test_approx_eq err[:re]  0
+@test isapprox(err[:re],  zero(Float64); atol=0.00001)
